@@ -1,0 +1,19 @@
+# 通用环境
+jdk-8u144-linux-x64.tar.gz true
+azkaban-sql-script-2.5.0.tar.gz true
+# Node01
+hadoop-2.7.7.tar.gz true node01
+# Node02
+mysql-rpm-pack-5.7.28 true node02
+azkaban-executor-server-2.5.0.tar.gz true node02
+azkaban-web-server-2.5.0.tar.gz true node02
+presto-server-0.196.tar.gz true node02
+# Node03
+apache-hive-1.2.1-bin.tar.gz true node03
+apache-tez-0.9.1-bin.tar.gz true node03
+sqoop-1.4.6.bin__hadoop-2.0.4-alpha.tar.gz true node03
+yanagishima-18.0.zip true node03
+# Muti
+apache-flume-1.7.0-bin.tar.gz true node01,node02,node03
+zookeeper-3.4.10.tar.gz true node01,node02,node03
+kafka_2.11-0.11.0.2.tgz true node01,node02,node03
