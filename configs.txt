@@ -1,8 +1,8 @@
 # Mysql相关配置
-mysql-root-password DBa2020*
-mysql-hive-password DBa2020*
-mysql-drive mysql-connector-java-5.1.26-bin.jar
+mysql-root-password DBa2020* END
+mysql-hive-password DBa2020* END
+mysql-drive mysql-connector-java-5.1.26-bin.jar END
 # azkaban相关配置
-azkaban-mysql-user root
-azkaban-mysql-password DBa2020*
-azkaban-keystore-password 123456
+azkaban-mysql-user root END
+azkaban-mysql-password DBa2020* END
+azkaban-keystore-password 123456 END
