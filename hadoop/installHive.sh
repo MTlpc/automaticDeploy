@@ -22,7 +22,7 @@ function configureHiveSite()
 {
  hiveSiteUrl=$1
  mysqlNode=`egrep "^mysql-rpm-pack" /home/hadoop/automaticDeploy/frames.txt | cut -d " " -f3`
- mysqlHivePasswd=`egrep "^mysql-hive-password" /home/hadoop/automaticDeploy/configs.txt | cut -d " " -f2`
+ mysqlHivePasswd=`egrep "^mysql-hive-password" /home/hadoop/automaticDeploy/configs.txt | cut -d " " -f2 | sed s/\r//`
  
  cat >> $hiveSiteUrl <<EOF
 <configuration>
@@ -123,7 +123,7 @@ function installHive()
           configureHiveSite $hive_home/conf/hive-site.xml
           
           #拷贝Mysql连接驱动
-          mysqlDrive=`egrep "^mysql-drive" /home/hadoop/automaticDeploy/configs.txt | cut -d " " -f2`
+          mysqlDrive=`egrep "^mysql-drive" /home/hadoop/automaticDeploy/configs.txt | cut -d " " -f2 | sed s/\r//`
           #判断驱动是否存在
           driveIsExists=`find /opt/frames/lib -name $mysqlDrive`
           if [[ ${#driveIsExists} -ne 0 ]];then

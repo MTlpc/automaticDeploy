@@ -84,7 +84,7 @@ function installMysql()
 
         # 执行Mysql修改密码
         # select user,host,password, from mysql.user
-        mysqlRootPasswd=`egrep "^mysql-root-password" /home/hadoop/automaticDeploy/configs.txt | cut -d " " -f2`
+        mysqlRootPasswd=`egrep "^mysql-root-password" /home/hadoop/automaticDeploy/configs.txt | cut -d " " -f2 | sed s/\r//`
         mysql --connect-expired-password -uroot -e "set password for root@localhost=password('$mysqlRootPasswd');"
         export MYSQL_PWD=$mysqlRootPasswd
 
@@ -105,7 +105,7 @@ function installMysql()
         # mysql  -h IP -P端口 -u用户名 -p密码 mysql --default-character-set=utf8 -e "flush privileges"
 
         # 添加新用户
-        mysqlHivePasswd=`egrep "^mysql-hive-password" /home/hadoop/automaticDeploy/configs.txt | cut -d " " -f2`
+        mysqlHivePasswd=`egrep "^mysql-hive-password" /home/hadoop/automaticDeploy/configs.txt | cut -d " " -f2 | sed s/\r//`
         mysql  -uroot -e "create user 'hive'@'%' identified by '$mysqlHivePasswd';"
         mysql  -uroot -e "flush privileges;"
 
