@@ -58,7 +58,7 @@ function installSqoop()
           configureSqoopEnv $sqoop_home/conf/sqoop-env.sh $sqoop_home
    
           #7.拷贝Mysql JDBC连接驱动
-          mysqlDrive=`egrep "^mysql-drive" /home/hadoop/automaticDeploy/configs.txt | cut -d " " -f2 | sed s/\r//`
+          mysqlDrive=`egrep "^mysql-drive" /home/hadoop/automaticDeploy/configs.txt | cut -d " " -f2`
           # 判断驱动是否存在
           driveIsExists=`find /opt/frames/lib -name $mysqlDrive`
           if [[ ${#driveIsExists} -ne 0 ]];then
