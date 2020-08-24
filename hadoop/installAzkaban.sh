@@ -183,8 +183,8 @@ function installAzkaban()
 
  # 获取Mysql信息 
  mysqlNode=`egrep "^mysql-rpm-pack" /home/hadoop/automaticDeploy/frames.txt | cut -d " " -f3`
- mysqlUser=`egrep "^azkaban-mysql-user" /home/hadoop/automaticDeploy/configs.txt | cut -d " " -f2 | sed s/\r//`
- mysqlPasswd=`egrep "^azkaban-mysql-password" /home/hadoop/automaticDeploy/configs.txt | cut -d " " -f2 | sed s/\r//`
+ mysqlUser=`egrep "^azkaban-mysql-user" /home/hadoop/automaticDeploy/configs.txt | cut -d " " -f2`
+ mysqlPasswd=`egrep "^azkaban-mysql-password" /home/hadoop/automaticDeploy/configs.txt | cut -d " " -f2`
 
  executor=`echo $executorInfo | cut -d " " -f1`
 #  sql=`echo $sqlInfo | cut -d " " -f1`
