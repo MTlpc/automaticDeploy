@@ -51,7 +51,7 @@ function installMysql()
     if [[ ${#mysqlIsExists} -ne 0  ]];then
 
         # 安装依赖
-        yum install -y net-tools.x86_64，libaio.x86_64，perl.x86_64
+        yum install -y net-tools.x86_64,libaio.x86_64,perl.x86_64
         yum -y install numactl.x86_64
 
         yum remove mariadb-libs -y
