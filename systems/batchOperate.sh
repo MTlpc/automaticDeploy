@@ -9,9 +9,9 @@
 # echo "2.修改hostname为node1"
 # /home/hadoop/automaticDeploy/systems/changeHostname.sh $hostname
 
-# 移动安装包到/opt/frames下
-echo "移动安装包到/opt/frames下"
-mv /home/hadoop/automaticDeploy/frames /opt/
+# NTP时间同步
+yum install ntpdate -y
+ntpdate cn.pool.ntp.org 
 
 # host配置文件修改
 echo "将集群ip及其映射的hostname添加到/etc/hosts中"
