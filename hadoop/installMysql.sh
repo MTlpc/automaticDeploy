@@ -35,7 +35,7 @@ function installMysql()
     # wget http://mirrors.sohu.com/mysql/MySQL-5.7/mysql-community-client-5.7.28-1.el7.x86_64.rpm
     # wget http://mirrors.sohu.com/mysql/MySQL-5.7/mysql-community-libs-5.7.28-1.el7.x86_64.rpm
     # wget http://mirrors.sohu.com/mysql/MySQL-5.7/mysql-community-common-5.7.28-1.el7.x86_64.rpm
-
+    # wget http://mirrors.sohu.com/mysql/MySQL-5.7/mysql-community-devel-5.7.23-1.el7.x86_64.rpm
 
      mysql=`echo $mysqlInfo | cut -d " " -f1`
      isInstall=`echo $mysqlInfo | cut -d " " -f2`

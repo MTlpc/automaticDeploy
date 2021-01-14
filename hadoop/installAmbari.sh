@@ -109,7 +109,6 @@ function configureHiveSite()
   
 </configuration>
 EOF
-
 }
 
 # 配置hive-site.xml，开启Thrift服务
@@ -137,110 +136,73 @@ cat >> $hiveSite <<EOF
 EOF
 }
 
-function installHive()
+function installAmbari()
 {
  #在frames.txt中查看是否需要安装hive
- hiveInfo=`egrep "hive" /home/hadoop/automaticDeploy/frames.txt`
+ ambariInfo=`egrep "ambari" /home/hadoop/automaticDeploy/frames.txt`
  
- hive=`echo $hiveInfo | cut -d " " -f1`
- isInstall=`echo $hiveInfo | cut -d " " -f2`
- hiveNode=`echo $hiveInfo | cut -d " " -f3`
+ ambari=`echo $ambariInfo | cut -d " " -f1`
+ isInstall=`echo $ambariInfo | cut -d " " -f2`
+ ambariNode=`echo $ambariInfo | cut -d " " -f3`
  node=`hostname`
  
  #是否在当前节点进行安装
- if [[ $isInstall = "true" && $hiveNode = $node ]];then
+ if [[ $isInstall = "true" && $ambariNode =~ $node ]];then
      
-     #查看/opt/frames目录下是否有hive安装包
-     hiveIsExists=`find /opt/frames -name $hive`
+     #查看/opt/frames目录下是否有ambari安装包
+     ambariIsExists=`find /opt/frames -name $ambari`
     
-     if [[ ${#hiveIsExists} -ne 0 ]];then
+     if [[ ${#ambariIsExists} -ne 0 ]];then
            
           if [[ ! -d /opt/app ]];then
               mkdir /opt/app && chmod -R 775 /opt/app
           fi
    
           #删除旧的
-          hive_home_old=`find /opt/app -maxdepth 1 -name "*hive*"`
-          for i in $hive_home_old;do
+          ambari_home_old=`find /opt/app -maxdepth 1 -name "*ambari*"`
+          for i in $ambari_home_old;do
                 rm -rf $i
           done
 
           #解压到指定文件夹/opt/app中
-          echo "开始解压hive安装包"
-          tar -zxvf $hiveIsExists -C /opt/app >& /dev/null
-          echo "hive安装包解压完毕"
+          echo "开始解压ambari安装包"
+          tar -zxvf $ambariIsExists -C /opt/app >& /dev/null
+          echo "ambari安装包解压完毕"
 
-          hive_home=`find /opt/app -maxdepth 1 -name "*hive*"`
- 
-          #配置hive-env.sh文件
-          configureHiveEnv $hive_home/conf/hive-env.sh $hive_home
+          # 安装rpm编译依赖
+          # yum install rpm -y
+          yum install rpm-build -y
+          yum install gcc-c++
+          # yum install git -y
 
-          #配置hive-log4j2.properties文件
-          cp $hive_home/conf/hive-log4j2.properties.template $hive_home/conf/hive-log4j2.properties
+          ambari_home=`find /opt/app -maxdepth 1 -name "*ambari*"`
 
-          #配置hive-site.xml
-          configureHiveSite $hive_home/conf/hive-site.xml
+          version=`echo $ambari_home | cut -d "-" -f3`
+
+          cd $ambari_home
+          mvn versions:set -DnewVersion=$version".0.0"
+          pushd ambari-metrics
+          mvn versions:set -DnewVersion=$version".0.0"
+          popd
+
+          # 编译
+          mvn -B clean install rpm:rpm -DnewVersion=2.7.5.0.0 -DbuildNumber=5895e4ed6b30a2da8a90fee2403b6cab91d19972 -DskipTests -Dpython.ver="python >= 2.6"
+
+          # 安装ambari
+          yum install ambari-server*.rpm    #This should also pull in postgres packages as well.
+
+          # 配置
+          # ambari-server setup
+
+          # 启动服务
+          # ambari-server start
           
-          #拷贝Mysql连接驱动
-          mysqlDrive=`egrep "^mysql-drive" /home/hadoop/automaticDeploy/configs.txt | cut -d " " -f2`
-          #判断驱动是否存在
-          driveIsExists=`find /opt/frames/lib -name $mysqlDrive`
-          if [[ ${#driveIsExists} -ne 0 ]];then
-            cp /opt/frames/lib/$mysqlDrive $hive_home/lib/
-          else
-            echo "/opt/frames/lib目录下没有Mysql驱动"
-          fi
-
-          #为Presto开启Thrift服务
-          prestoInstall=`egrep "presto" /home/hadoop/automaticDeploy/frames.txt | cut -d " " -f2`
-          if [[ $prestoInstall = "true" ]];then
-            echo "开始配置Hive Thrift服务"
-            configureHiveThrift $hive_home/conf/hive-site.xml
-            # 开启Hive元数据服务
-            # hive --service hiveserver2 &
-            # hive --service metastore &
-          fi
-
-          # 初始化元数据
-          $hive_home/bin/schematool -dbType mysql -initSchema
-   
-          #配置HIVE_HOME
-          profile=/etc/profile
-          sed -i "/^export HIVE_HOME/d" $profile
-          echo "export HIVE_HOME=$hive_home" >> $profile
-
-          #配置PATH
-          sed -i "/^export PATH=\$PATH:\$HIVE_HOME\/bin/d" $profile
-          echo "export PATH=\$PATH:\$HIVE_HOME/bin" >> $profile
-
-          #更新/etc/profile文件
-          source /etc/profile && source /etc/profile
-
-          # 判断是否安装Tez
-          tezInstall=`egrep "tez" /home/hadoop/automaticDeploy/frames.txt | cut -d " " -f2`
-          if [[ $tezInstall = "true" ]];then
-            echo "开始安装Tez服务"
-            /home/hadoop/automaticDeploy/hadoop/installTez.sh
-          fi
-          # alter database hive character set latin1;
-          # 输出提示信息
-          echo "--------------------"
-          echo "|   Hive安装成功！  |"
-          echo "--------------------"
-          echo "Hive服务启动命令: hive"
-          if [[ $prestoInstall = "true" ]];then
-          echo "为Presto开启Hive元数据服务命令: hive --service hiveserver2 &"
-          echo "为Presto开启Hive元数据服务命令: hive --service metastore &"
-          fi
-          if [[ $tezInstall = "true" ]];then
-              echo "Hive将运行在Tez引擎之上"
-          fi
      else
-         echo "/opt/frames目录下没有hive安装包"
+         echo "/opt/frames目录下没有ambari安装包"
      fi
  else
-     echo "Hive不允许被安装在当前节点"
+     echo "ambari不允许被安装在当前节点"
  fi
 }
 
-installHive
+installAmbari

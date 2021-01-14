@@ -37,13 +37,13 @@ function configureCoreSite()
 
  #代理用户hosts
  echo "  <property>" >> $coreSiteUrl
- echo "      <name>hadoop.proxyuser.hduser.hosts</name>" >> $coreSiteUrl
+ echo "      <name>hadoop.proxyuser.root.hosts</name>" >> $coreSiteUrl
  echo "      <value>*</value>" >> $coreSiteUrl
  echo "  </property>" >> $coreSiteUrl
 
  #代理用户组
  echo "  <property>" >> $coreSiteUrl
- echo "      <name>hadoop.proxyuser.hduser.groups</name>" >> $coreSiteUrl
+ echo "      <name>hadoop.proxyuser.root.groups</name>" >> $coreSiteUrl
  echo "      <value>*</value>" >> $coreSiteUrl
  echo "  </property>" >> $coreSiteUrl
 
@@ -91,6 +91,12 @@ function configureHdfsSite()
  echo "      <value>true</value>" >> $hdfsSiteUrl
  echo "  </property>" >> $hdfsSiteUrl
   
+ #开启ACL权限管控
+ echo "  <property>" >> $hdfsSiteUrl
+ echo "      <name>dfs.namenode.acls.enabled</name>" >> $hdfsSiteUrl
+ echo "      <value>true</value>" >> $hdfsSiteUrl
+ echo "  </property>" >> $hdfsSiteUrl
+
  echo "</configuration>" >> $hdfsSiteUrl
 }
 
@@ -121,6 +127,18 @@ function configureMapredSite()
  echo "  <property>" >> $mapredSiteUrl
  echo "      <name>mapreduce.jobhistory.webapp.address</name>" >> $mapredSiteUrl
  echo "      <value>$masterNode:19888</value>" >> $mapredSiteUrl
+ echo "  </property>" >> $mapredSiteUrl
+
+ #MapReduce日志保存位置
+ echo "  <property>" >> $mapredSiteUrl
+ echo "      <name>mapreduce.jobhistory.intermediate-done-dir</name>" >> $mapredSiteUrl
+ echo "      <value>/mr-history/log</value>" >> $mapredSiteUrl
+ echo "  </property>" >> $mapredSiteUrl
+
+ #History Server日志保存位置
+ echo "  <property>" >> $mapredSiteUrl
+ echo "      <name>mapreduce.jobhistory.done-dir</name>" >> $mapredSiteUrl
+ echo "      <value>/mr-history/done</value>" >> $mapredSiteUrl
  echo "  </property>" >> $mapredSiteUrl
 
  echo "</configuration>" >> $mapredSiteUrl
@@ -183,6 +201,12 @@ function configureYarnSite()
  echo "      <value>false</value>" >> $yarnSiteUrl
  echo "  </property>" >> $yarnSiteUrl
 
+# 开启日志聚合功能，开启Job-History服务必须的配置
+ echo "  <property>" >> $yarnSiteUrl
+ echo "      <name>yarn.log-aggregation-enable</name>" >> $yarnSiteUrl
+ echo "      <value>true</value>" >> $yarnSiteUrl
+ echo "  </property>" >> $yarnSiteUrl
+
  echo "</configuration>" >> $yarnSiteUrl
 }
 
@@ -196,6 +220,7 @@ function configureSlaves()
  echo "node02" >> $slavesUrl
  echo "node03" >> $slavesUrl
 }
+
 
 function configureLZO()
 {
@@ -244,22 +269,53 @@ function configureLZO()
  fi
 }
 
+# 为配置文件添加单条记录
+function addConfigs()
+{
+ key=$1
+ value=$2
+ config_file=$3
+    
+ sed -i "/^<\/configuration>/d" $config_file
+ 
+ #namenode的secondary配置
+ echo "  <property>" >> $config_file
+ echo "      <name>$key</name>" >> $config_file
+ echo "      <value>$value</value>" >> $config_file
+ echo "  </property>" >> $config_file
+  
+ echo "</configuration>" >> $config_file
+}
+
+function configHue()
+{
+ 
+ hadoop_home=$1
+ #在frames.txt中查看是否需要安装hue
+ hueInfo=`egrep "hue" /home/hadoop/automaticDeploy/frames.txt`
+ 
+ hue=`echo $hueInfo | cut -d " " -f1`
+ isInstall=`echo $hueInfo | cut -d " " -f2`
+
+ if [[ $isInstall = "true" ]];then
+    
+    # 添加hue用户操作权限
+    addConfigs "hadoop.proxyuser.hue.hosts" "*" $hadoop_home/etc/hadoop/core-site.xml
+    addConfigs "hadoop.proxyuser.hue.groups" "*" $hadoop_home/etc/hadoop/core-site.xml
+    addConfigs "hadoop.proxyuser.httpfs.hosts" "*" $hadoop_home/etc/hadoop/core-site.xml
+    addConfigs "hadoop.proxyuser.httpfs.groups" "*" $hadoop_home/etc/hadoop/core-site.xml
+    
+    # 添加hue web权限
+    addConfigs "httpfs.proxyuser.hue.hosts" "*" $hadoop_home/etc/hadoop/httpfs-site.xml
+    addConfigs "httpfs.proxyuser.hue.groups" "*" $hadoop_home/etc/hadoop/httpfs-site.xml
+ fi
+
+}
+
 function installHadoop()
 {
  #在frames.txt中查看是否需要安装hadoop
  hadoopInfo=`egrep "^hadoop" /home/hadoop/automaticDeploy/frames.txt`
- 
- # 读取hosts文件
-  #1./home/hadoop/host_ip.txt文件中读取ip和hostname
-#  while read line
-#  do
-#    #提取文件中的ip
-#    ip=`echo $line | cut -d " " -f1`
-#    #提取文件中的用户名
-#    hostname=`echo $line | cut -d " " -f2`
-
-#    addIpToHostFile $ip $hostname
-#  done < /home/hadoop/automaticDeploy/host_ip.txt #读取存储ip的文件
 
  hadoop=`echo $hadoopInfo | cut -d " " -f1`
  isInstall=`echo $hadoopInfo | cut -d " " -f2`
@@ -334,6 +390,9 @@ function installHadoop()
 
        # 配置lzo
        configureLZO $hadoop_home $hadoop_home/etc/hadoop/core-site.xml
+
+       # 配置hue
+       configHue $hadoop_home
 
        #配置HadoopHome和Path
        profile=/etc/profile

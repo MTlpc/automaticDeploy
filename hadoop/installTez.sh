@@ -2,32 +2,72 @@
 
 function configureHiveEnv()
 {
- hiveEnvUrl=$1
+ hive_home=$1
  tez_home=$2
-
- profile=/etc/profile
- java_home=`egrep "^export JAVA_HOME=" $profile`
- hadoop_home=`egrep "^export HADOOP_HOME=" $profile`
  
- echo "$java_home" >> $hiveEnvUrl
- echo "$hadoop_home" >> $hiveEnvUrl
-#  echo "$tez_home" >> $hiveEnvUrl
+ hiveEnvUrl=$hive_home/conf/hive-env.sh
 
 echo "export TEZ_HOME=$tez_home" >> $hiveEnvUrl
-cat >> $hiveEnvUrl <<EOF
-export TEZ_JARS=""
-for jar in \`ls \$TEZ_HOME |grep jar\`; do
-    export TEZ_JARS=\$TEZ_JARS:\$TEZ_HOME/\$jar
-done
-for jar in \`ls \$TEZ_HOME/lib\`; do
-    export TEZ_JARS=\$TEZ_JARS:\$TEZ_HOME/lib/\$jar
-done
-EOF
+echo "export TEZ_CONF_DIR=$hive_home/conf" >> $hiveEnvUrl
+echo "export HADOOP_CLASSPATH=\$TEZ_CONF_DIR:\$TEZ_HOME/*:\$TEZ_HOME/lib/*" >> $hiveEnvUrl
+
+# cat >> $hiveEnvUrl <<EOF
+# export TEZ_JARS=""
+# for jar in \`ls \$TEZ_HOME |grep jar\`; do
+#     export TEZ_JARS=\$TEZ_JARS:\$TEZ_HOME/\$jar
+# done
+# for jar in \`ls \$TEZ_HOME/lib\`; do
+#     export TEZ_JARS=\$TEZ_JARS:\$TEZ_HOME/lib/\$jar
+# done
+# EOF
+
+profile=/etc/profile
+hadoop_home=`egrep "^export HADOOP_HOME=" $profile`
 
 hadoop_path=`echo $hadoop_home | cut -d "=" -f2`
 lzo_home=`find $hadoop_path/share/hadoop/common -maxdepth 1 -name "*lzo*"`
 
-echo "export HIVE_AUX_JARS_PATH=$lzo_home\$TEZ_JARS" >> $hiveEnvUrl
+# echo "export HIVE_AUX_JARS_PATH=$lzo_home\$TEZ_JARS" >> $hiveEnvUrl
+echo "export HIVE_AUX_JARS_PATH=$lzo_home" >> $hiveEnvUrl
+}
+
+# 配置tez-site.xml文件
+function configureTezSiteForLLAP()
+{
+ hiveConf=$1
+ tezName=$2
+ tez_home=$3
+ 
+cat << EOF > $hiveConf/tez-site.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+<property>
+	<name>tez.lib.uris</name>    
+    <value>\${fs.defaultFS}/tez/{tez-path}</value>
+</property>
+<property>
+     <name>tez.use.cluster.hadoop-libs</name>
+     <value>false</value>
+</property>
+<property>
+     <name>tez.history.logging.service.class</name>        
+     <value>org.apache.tez.dag.history.logging.ats.ATSHistoryLoggingService</value>
+</property>
+</configuration>
+EOF
+
+# 将配置文件中的{tez-path}替换成当前tez的路径
+sed -i "s/{tez-path}/$tezName/g" $hiveConf/tez-site.xml
+
+# 上传tez到HDFS中
+hadoop fs -test -e /tez
+if [[ $? -eq 0 ]] ;then 
+  hadoop fs -rm -r /tez
+fi
+
+hadoop fs -mkdir /tez
+hadoop fs -put $tez_home /tez
 }
 
 # 配置tez-site.xml文件
@@ -35,6 +75,7 @@ function configureTezSite()
 {
  hiveConf=$1
  tezName=$2
+ tez_home=$3
  
 cat << EOF > $hiveConf/tez-site.xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -61,6 +102,15 @@ EOF
 
 # 将配置文件中的{tez-path}替换成当前tez的路径
 sed -i "s/{tez-path}/$tezName/g" $hiveConf/tez-site.xml
+
+# 上传tez到HDFS中
+hadoop fs -test -e /tez
+if [[ $? -eq 0 ]] ;then 
+  hadoop fs -rm -r /tez
+fi
+
+hadoop fs -mkdir /tez
+hadoop fs -put $tez_home /tez
 }
 
 function configureHiveSite()
@@ -125,18 +175,14 @@ function installTez()
           hive_home=`find /opt/app -maxdepth 1 -name "*hive*"`
 
           #4.配置hive-env.sh文件
-          configureHiveEnv $hive_home/conf/hive-env.sh $tez_home
+          configureHiveEnv $hive_home $tez_home
           
           #5.配置tez-site.sh文件
           tezName=`echo $tezInfo | awk -F'.tar' '{print $1}'`
-          configureTezSite $hive_home/conf $tezName
+          configureTezSiteForLLAP $hive_home/conf tez.tar.gz $tez_home/share/tez.tar.gz
 
           #6.配置hive-site.sh文件
           configureHiveSite $hive_home/conf/hive-site.xml
-
-          # 上传tez到HDFS中
-          hadoop fs -mkdir /tez
-          hadoop fs -put $tez_home /tez
 
           echo "Tez安装成功"
      else
