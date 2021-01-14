@@ -41,10 +41,10 @@ function configureScala()
        #5.更新/etc/profile文件
        source /etc/profile && source /etc/profile  
     else 
-        echo "/opt/frames目录下没有scala安装包1"
+        echo "/opt/frames目录下没有scala安装包"
     fi
  else
-       echo "/opt/frames目录下没有scala安装包2"
+       echo "scala不允许被安装"
  fi
 
 }
