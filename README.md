@@ -1,7 +1,7 @@
 # automaticDeploy
 大数据环境一键安装脚本
 
-项目基于(BigData_AutomaticDeploy)[https://github.com/SwordfallYeung/BigData_AutomaticDeploy]
+项目基于[BigData_AutomaticDeploy](https://github.com/SwordfallYeung/BigData_AutomaticDeploy)
 
 # 适用环境
 CentOS 7以上
