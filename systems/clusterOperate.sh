@@ -27,9 +27,11 @@ function clusterOperate()
              #3.1 存在则先删除旧的
              ssh -n $hostname "rm -rf /home/hadoop/automaticDeploy"
         fi
+
+        ssh -n $hostname "mkdir -p /home/hadoop/automaticDeploy"
  
         #3.2 把本地的automaticDeploy里面的脚本文件复制到远程主机上
-        scp -r /home/hadoop/automaticDeploy/ $hostname:/home/hadoop/automaticDeploy
+        scp -r /home/hadoop/automaticDeploy/ $hostname:/home/hadoop/automaticDeploy/
 
         #3.3 把本地的/opt/frames里的软件安装包复制到远程主机的/opt/frames上
         #判断远程主机上/opt/frames是否存在，不存在则创建 
