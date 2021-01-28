@@ -1,8 +1,6 @@
 # automaticDeploy
 大数据环境一键安装脚本
 
-项目基于(BigData_AutomaticDeploy)[https://github.com/SwordfallYeung/BigData_AutomaticDeploy]
-
 # 适用环境
 CentOS 7以上
 
@@ -83,3 +81,6 @@ azkaban-keystore-password 123456
 # 安装kafka
 /home/hadoop/automaticDeploy/systems/installKafka.sh
 ```
+
+# 鸣谢
+项目最初基于(BigData_AutomaticDeploy)[https://github.com/SwordfallYeung/BigData_AutomaticDeploy]修改而来
