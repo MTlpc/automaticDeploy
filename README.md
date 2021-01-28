@@ -83,4 +83,4 @@ azkaban-keystore-password 123456
 ```
 
 # 鸣谢
-项目最初基于(BigData_AutomaticDeploy)[https://github.com/SwordfallYeung/BigData_AutomaticDeploy] 改进而来
+项目最初基于[BigData_AutomaticDeploy](https://github.com/SwordfallYeung/BigData_AutomaticDeploy)改进而来
