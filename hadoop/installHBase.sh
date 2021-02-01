@@ -12,7 +12,7 @@ function configureHbaseEnv()
  num_hadoop=`sed -n -e "/# export HBASE_CLASSPATH=/=" $hbaseEnvUrl`
  sed -i "${num_hadoop}a export HBASE_CLASSPATH=${hadoop_home}/etc/hadoop" $hbaseEnvUrl
 
- num_zk=`sed -n -e "/# export HBASE_MANAGES_ZK=false/=" $hbaseEnvUrl`
+ num_zk=`sed -n -e "/# export HBASE_MANAGES_ZK/=" $hbaseEnvUrl`
  sed -i "${num_zk}a export HBASE_MANAGES_ZK=false" $hbaseEnvUrl
 }
 
