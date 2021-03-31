@@ -1,6 +1,8 @@
 # automaticDeploy
 大数据环境一键安装脚本
 
+主分支的hive安装脚本在安装hive时只能适配1.x，而hive分支的脚本可以适配2.x以及较新版本的安装。
+
 # 适用环境
 CentOS 7以上
 
@@ -82,5 +84,10 @@ azkaban-keystore-password 123456
 /home/hadoop/automaticDeploy/systems/installKafka.sh
 ```
 
-# 鸣谢
-项目最初基于[BigData_AutomaticDeploy](https://github.com/SwordfallYeung/BigData_AutomaticDeploy)改进而来
+# 致谢
+
+项目基于[BigData_AutomaticDeploy](https://github.com/SwordfallYeung/BigData_AutomaticDeploy)开发而成，当我有了写一键搭建脚本的时候，在github上搜索到的一个项目，帮我减少了很多造轮子的时间，非常感谢。
+
+在此基础上，增加了不少的大数据组件，并适配了CentOS7 1511，并做了不少的改动。
+
+这个项目，同样会持续开源和维护，后续会增加更多的大数据组件。再次感谢！！！
